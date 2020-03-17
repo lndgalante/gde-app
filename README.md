@@ -1,1 +1,1 @@
-# gde-app
+# gde-apps
