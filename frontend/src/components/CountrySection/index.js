@@ -17,7 +17,7 @@ export const CountrySection = () => {
   const [countryQuery, setCountryQuery] = useState('')
 
   // Custom hooks
-  const { countryInformation } = useCountryInformation(countryQuery)
+  const countryInformation = useCountryInformation(countryQuery)
 
   // Handlers
   const handleCountryChange = (newCountry) => setCountryQuery(newCountry)

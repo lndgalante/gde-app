@@ -7,22 +7,15 @@ export const useMostAffectedCountries = (limit = 3) => {
   const [mostAffectedCountries, setMostAffectedCountries] = useState([])
 
   useEffect(() => {
-    const getMostAffectedCountries = () => {
-      const unsuscribe = db
-        .collection('countries')
-        .orderBy('confirmed', 'desc')
-        .limit(limit)
-        .onSnapshot((snapshot) => {
-          const newData = snapshot.docChanges().map((change) => change.doc.data())
-          setMostAffectedCountries(newData)
-        })
-
-      return unsuscribe
-    }
-
-    const unsuscribe = getMostAffectedCountries()
-    return () => unsuscribe()
+    return db
+      .collection('countries')
+      .orderBy('confirmed', 'desc')
+      .limit(limit)
+      .onSnapshot((snapshot) => {
+        const newData = snapshot.docChanges().map((change) => change.doc.data())
+        setMostAffectedCountries(newData)
+      })
   }, [limit])
 
-  return { mostAffectedCountries }
+  return mostAffectedCountries
 }

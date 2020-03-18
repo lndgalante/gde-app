@@ -10,7 +10,7 @@ import { useMostAffectedCountries } from '../../hooks/useMostAffectedCountries'
 
 export const MostAffectedSection = () => {
   // Custom hooks
-  const { mostAffectedCountries } = useMostAffectedCountries()
+  const mostAffectedCountries = useMostAffectedCountries()
 
   return (
     <Section>
