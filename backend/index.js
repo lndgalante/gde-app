@@ -1,16 +1,21 @@
 require('dotenv').config()
-const express = require('express')
+const cors = require('cors')
+const helmet = require('helmet')
+const app = require('express')()
 
 // Utils
 const { getGlobalData } = require('./utils/api')
 const { coronaVirusCron } = require('./utils/cron')
 
 // Setup express
-const app = express()
-const PORT = process.env.PORT || 3000
+app.use(cors())
+app.use(helmet())
 
 // Run cron
 coronaVirusCron()
+
+// Constants
+const PORT = process.env.PORT || 3000
 
 // Endpoints
 app.get('/status', (_req, res) => {

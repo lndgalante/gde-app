@@ -59,10 +59,13 @@ const saveCoronaVirusDataToFirestore = async () => {
   // Save each country to countries collection
   for (const key in countries) {
     const country = countries[key]
-    countriesCollection.doc(country.id).update(country)
+    countriesCollection.doc(country.id).set(country)
   }
 }
 
-const coronaVirusCron = () => cron.schedule('5 * * * *', saveCoronaVirusDataToFirestore)
+const coronaVirusCron = () => {
+  saveCoronaVirusDataToFirestore()
+  cron.schedule('*/2 * * * *', saveCoronaVirusDataToFirestore)
+}
 
 module.exports = { coronaVirusCron }
