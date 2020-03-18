@@ -1,26 +1,22 @@
+require('dotenv').config()
 const express = require('express')
-const dotenv = require('dotenv')
 
 // Utils
 const { getGlobalData } = require('./utils/api')
-const { updateFirebaseCron } = require('./utils/cron')
-
-// Setup dotenv
-dotenv.config()
+const { coronaVirusCron } = require('./utils/cron')
 
 // Setup express
 const app = express()
+const PORT = process.env.PORT || 3000
 
 // Run cron
-updateFirebaseCron()
+coronaVirusCron()
 
-app.get('/status', async (req, res) => {
-  try {
-    await getGlobalData()
-    res.json({ status: 'UP' })
-  } catch {
-    res.json({ status: 'DOWN' })
-  }
+// Endpoints
+app.get('/status', (_req, res) => {
+  getGlobalData()
+    .then(() => res.json({ status: 'UP' }))
+    .catch(() => res.json({ status: 'DOWN' }))
 })
 
-app.listen(3000)
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`))

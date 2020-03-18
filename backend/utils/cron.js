@@ -1,7 +1,8 @@
-const nanoid = require('nanoid')
 const cron = require('node-cron')
 
 // Utils
+const { db } = require('./firebase')
+const { createUniqueId } = require('./ids')
 const { getGlobalData, getAllStatesData } = require('./api')
 
 const getCoronaVirusData = async () => {
@@ -9,30 +10,59 @@ const getCoronaVirusData = async () => {
 
   // Global data parsing
   const {
+    lastUpdate,
+    deaths: { value: totalDeaths },
     confirmed: { value: totalConfirmed },
     recovered: { value: totalRecovered },
-    deaths: { value: totalDeaths },
   } = globalData
 
+  const global = [
+    { key: 'lastUpdate', value: lastUpdate },
+    { key: 'totalDeaths', value: totalDeaths },
+    { key: 'totalConfirmed', value: totalConfirmed },
+    { key: 'totalRecovered', value: totalRecovered },
+  ]
+
   // All states data parsing
-  const allStatesWithIds = allStatesData.map((stateData) => ({ ...stateData, id: nanoid(8) }))
-  const countryCases = allStatesWithIds.reduce(
-    (acc, state) => ({ ...acc, [state.countryRegion]: [...(acc[state.countryRegion] || []), state] }),
-    {},
-  )
-  const countryNames = Object.keys(countryCases)
+  const countries = allStatesData.reduce((acc, state) => {
+    const prevState = acc[state.countryRegion] || { confirmed: 0, recovered: 0, deaths: 0 }
 
-  return { totalConfirmed, totalRecovered, totalDeaths, countryCases, countryNames }
+    const id = createUniqueId(state.countryRegion)
+
+    const newState = {
+      ...prevState,
+      id,
+      lat: state.lat,
+      lon: state.long,
+      countryRegion: state.countryRegion,
+      deaths: prevState.deaths + state.deaths,
+      confirmed: prevState.confirmed + state.confirmed,
+      recovered: prevState.recovered + state.recovered,
+    }
+
+    return { ...acc, [state.countryRegion]: newState }
+  }, {})
+
+  return { global, countries }
 }
 
-const updateFirebaseCron = async () => {
-  const { totalConfirmed, totalRecovered, totalDeaths, countryCases, countryNames } = await getCoronaVirusData()
-  console.log('updateFirebaseCron -> totalConfirmed', totalConfirmed)
+const saveCoronaVirusDataToFirestore = async () => {
+  const { global, countries } = await getCoronaVirusData()
 
-  cron.schedule('5 * * * *', async () => {
-    const { totalConfirmed, totalRecovered, totalDeaths, countryCases, countryNames } = await getCoronaVirusData()
-    console.log('updateFirebaseCron -> totalConfirmed', totalConfirmed)
-  })
+  // Get collections
+  const globalCollection = db.collection('global')
+  const countriesCollection = db.collection('countries')
+
+  // Save global data to global collection
+  global.forEach(({ key, value }) => globalCollection.doc(key).update({ value }))
+
+  // Save each country to countries collection
+  for (const key in countries) {
+    const country = countries[key]
+    countriesCollection.doc(country.id).update(country)
+  }
 }
 
-module.exports = { updateFirebaseCron }
+const coronaVirusCron = () => cron.schedule('5 * * * *', saveCoronaVirusDataToFirestore)
+
+module.exports = { coronaVirusCron }
