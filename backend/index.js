@@ -20,8 +20,8 @@ const PORT = process.env.PORT || 3000
 // Endpoints
 app.get('/status', (_req, res) => {
   getGlobalData()
-    .then(() => res.json({ status: 'UP' }))
-    .catch(() => res.json({ status: 'DOWN' }))
+    .then(() => res.send(200).json({ status: 'UP' }))
+    .catch(() => res.send(500).json({ status: 'DOWN' }))
 })
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))

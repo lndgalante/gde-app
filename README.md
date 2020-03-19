@@ -5,4 +5,3 @@ The idea it's to use a [COVID-19 API](https://covid19.mathdro.id/api) to get all
 ## Links
 
 - Frontend: https://gde-frontend-app.now.sh
-- Backend: https://gde-backend-app.herokuapp.com/status
